@@ -2,7 +2,7 @@
 # This starter script is meant to help you understand how you can make your first submission 
 # in the format as expected. This scripts predicts events based on the popular past events per patient.
 
-path <- "/home/manish/Desktop/ML_Challenge_Creatives/ZS YOUNG/YDS-dataset/"
+path <- "directory"
 setwd(path)
 
 # load library
