@@ -1,0 +1,79 @@
+path <- "directory"
+setwd(path)
+
+# load library
+library(data.table)
+library(recommenderlab)
+library(reshape2)
+library(ggplot2)
+
+# load and check data ---------------------------------------------------------------
+
+train <- fread("train.csv")
+test <- fread("test.csv")
+sample_sub <- fread("sample_submission.csv")
+
+head(train)
+head(test)
+
+str(train)
+str(test)
+
+# order data
+train <- train[order(PID)]
+test <- test[order(PID)]
+summary(train)
+
+
+# converting long format into wide format----------------------------------
+train_dcast <- dcast(data = train, PID ~ Event,length, value.var = "Event")
+
+#numeric conversion---------------------------------------------
+a <-sapply(data.frame(train_dcast),as.numeric)
+class(a)
+is.na(a) <- !a
+a[a== 0]<- NA
+
+#user-collaborating-filtering-----------------------------
+R<-as.matrix(a)
+class(R)
+
+r <- as(R, "realRatingMatrix")
+
+r
+as(r, "list")     # A list
+as(r, "matrix")   # A sparse matrix
+
+class(r)
+
+
+rec_predicted <- Recommender(r[1:nrow(r)],method="UBCF")
+
+print(rec_predicted)
+model_details <- (getModel(rec_predicted))
+getModel(rec_predicted)$data
+model_details$data
+
+
+recom_p <- predict(rec_predicted,r[1:10], type ="ratings", n=10)
+recom_predict <- predict(rec_predicted,r[1:nrow(r)], n=10)
+recom
+
+list <- as(recom_p, "list")
+as(r, "matrix")
+a1 <- as(recom_p, "matrix")[,1:10]
+
+# Convert all your recommendations to list structure
+
+user_recom<-as.data.frame(list)
+
+# get top 10 events per row
+random_submit <- colnames(train_dcast)[-1][apply(train_dcast[,-c('PID'),with=F],1, function(x)order(-x)[1:10])]
+
+# create the submission file
+random_mat <- as.data.table((matrix(random_submit,ncol = 10, byrow = T)))
+colnames(random_mat) <- colnames(sample_sub)[-1]
+random_mat <- cbind(PID = test$PID, random_mat)
+fwrite(random_mat,"random_sub.csv")
+
+summary(train)
